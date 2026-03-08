@@ -79,9 +79,9 @@ RUN python3 -m pip install --no-cache-dir \
     fastapi "uvicorn[standard]" python-multipart \
     numpy pillow tqdm requests psutil
 
-# Install Ollama (direct binary download — the install.sh script fails in CI
-# because it tries to detect GPU drivers which don't exist during build)
-RUN curl -fsSL -o /usr/local/bin/ollama https://ollama.com/download/ollama-linux-amd64 \
+# Install Ollama (direct binary from GitHub releases — the install.sh script
+# fails in CI because it tries to detect GPU drivers during build)
+RUN curl -L -o /usr/local/bin/ollama https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
     && chmod +x /usr/local/bin/ollama
 
 # --- Copy app code from the cloned main repo (stage 1) ---
