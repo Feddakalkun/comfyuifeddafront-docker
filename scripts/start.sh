@@ -2,7 +2,7 @@
 set -e
 
 echo "========================================="
-echo "  FEDDA AI Studio — Docker Startup"
+echo "  FEDDA AI Studio - Docker Startup"
 echo "========================================="
 echo "GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo 'none detected')"
 echo ""
@@ -28,16 +28,18 @@ ln -sf /workspace/output /app/ComfyUI/output
 rm -rf /app/ComfyUI/input
 ln -sf /workspace/input /app/ComfyUI/input
 
-# --- 3. Install custom nodes (first run only) ---
-if [ ! -f "/workspace/.nodes_installed" ]; then
+# --- 3. Install custom nodes with fast first boot ---
+CORE_MARKER="/workspace/.nodes_core_installed"
+FULL_MARKER="/workspace/.nodes_full_installed"
+
+if [ ! -f "$CORE_MARKER" ]; then
     echo ""
-    echo "[SETUP] First run detected — installing custom nodes..."
-    /app/scripts/install-nodes.sh
-    touch /workspace/.nodes_installed
-    echo "[SETUP] Custom nodes installed."
+    echo "[SETUP] First run detected - installing CORE custom nodes..."
+    NODE_MODE=core /app/scripts/install-nodes.sh --core
+    touch "$CORE_MARKER"
+    echo "[SETUP] CORE custom nodes installed."
 else
-    echo "[SETUP] Custom nodes already installed (skipping)."
-    # Ensure symlink exists
+    echo "[SETUP] CORE custom nodes already installed (skipping)."
     if [ ! -L "/app/ComfyUI/custom_nodes" ] || [ ! -d "/app/ComfyUI/custom_nodes" ]; then
         rm -rf /app/ComfyUI/custom_nodes
         ln -sf /workspace/custom_nodes /app/ComfyUI/custom_nodes
@@ -47,7 +49,6 @@ fi
 # --- 4. Copy bundled assets ---
 cp -n /app/assets/styles.csv /app/ComfyUI/styles.csv 2>/dev/null || true
 
-# Copy bundled LoRAs if they exist
 if [ -d "/app/assets/loras" ]; then
     echo "[SETUP] Copying bundled LoRAs..."
     cp -rn /app/assets/loras/* "$MODELS_DIR/loras/" 2>/dev/null || true
@@ -64,14 +65,20 @@ network_mode = public
 EOF
 fi
 
-# --- 6. Copy workflow files to a location ComfyUI can serve ---
-# (Frontend fetches these from Nginx at /workflows/*)
-# They're already in /app/frontend/dist/workflows/ from the build
-
-# --- 7. Start model downloads in background ---
+# --- 6. Start model downloads in background ---
 echo ""
 echo "[MODELS] Starting background model downloads..."
 /app/scripts/download-models.sh &
+
+# --- 7. Start FULL node install in background (once) ---
+if [ ! -f "$FULL_MARKER" ]; then
+    echo "[NODES] Starting full node install in background..."
+    (
+        NODE_MODE=full /app/scripts/install-nodes.sh --full && touch "$FULL_MARKER"
+    ) > /var/log/node_install_bg.log 2>&1 &
+else
+    echo "[NODES] Full node set already installed."
+fi
 
 # --- 8. Launch all services via supervisord ---
 echo ""
