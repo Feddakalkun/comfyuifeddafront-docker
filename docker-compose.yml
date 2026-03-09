@@ -9,6 +9,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     ports:
       - "3000:3000"
+      - "8199:8199"
     volumes:
       - fedda-workspace:/workspace
     deploy:
@@ -21,3 +22,5 @@ services:
 
 volumes:
   fedda-workspace:
+
+

@@ -106,5 +106,8 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD /app/scripts/healthcheck.sh
 
 EXPOSE 3000
+EXPOSE 8199
 
 ENTRYPOINT ["/app/scripts/start.sh"]
+
+
