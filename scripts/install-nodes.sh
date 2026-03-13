@@ -41,6 +41,8 @@ CORE_FOLDERS = {
     "ComfyUI-qwenmultiangle",
     "ComfyUI-VideoHelperSuite",
     "ComfyUI-WanVideoWrapper",
+    "ComfyUI-IF_AI_tools",
+    "ComfyUI-Custom-Scripts",
 }
 
 with open(config_path, encoding="utf-8") as f:

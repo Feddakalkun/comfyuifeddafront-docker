@@ -12,6 +12,7 @@ MODELS_DIR="/workspace/models/comfyui"
 mkdir -p "$MODELS_DIR"/{checkpoints,diffusion_models,clip,text_encoders,vae,loras,sams,ultralytics/bbox,model_patches}
 mkdir -p /workspace/output
 mkdir -p /workspace/input
+mkdir -p /workspace/ollama_models
 
 # --- 2. Symlink ComfyUI model directories to network volume ---
 echo "[SETUP] Symlinking model directories to /workspace..."
@@ -80,10 +81,24 @@ else
     echo "[NODES] Full node set already installed."
 fi
 
-# --- 8. Launch all services via supervisord ---
+# --- 8. Pull default Ollama model in background (once) ---
+OLLAMA_MODEL_MARKER="/workspace/.ollama_model_pulled"
+if [ ! -f "$OLLAMA_MODEL_MARKER" ]; then
+    echo "[OLLAMA] Queueing default model pull (qwen2.5:3b) in background..."
+    (
+        sleep 15  # Wait for Ollama service to start
+        export OLLAMA_MODELS="/workspace/ollama_models"
+        ollama pull qwen2.5:3b && touch "$OLLAMA_MODEL_MARKER"
+    ) > /var/log/ollama_pull.log 2>&1 &
+else
+    echo "[OLLAMA] Default model already pulled."
+fi
+
+# --- 9. Launch all services via supervisord ---
 echo ""
 echo "========================================="
 echo "  Starting services..."
 echo "  UI will be available on port 3000"
+echo "  Ollama API on port 11434"
 echo "========================================="
 exec supervisord -c /etc/supervisor/conf.d/supervisord.conf
