@@ -27,25 +27,34 @@ ln -sf /workspace/output /app/ComfyUI/output
 rm -rf /app/ComfyUI/input
 ln -sf /workspace/input /app/ComfyUI/input
 
-# --- 3. Install custom nodes with fast first boot ---
-CORE_MARKER="/workspace/.nodes_core_installed"
+# --- 3. Copy pre-installed critical nodes to workspace (if missing) ---
+mkdir -p /workspace/custom_nodes
+echo "[SETUP] Ensuring critical nodes are present..."
+
+for node in ComfyUI-Impact-Pack comfyui-impact-subpack rgthree-comfy ComfyUI-IF_AI_tools; do
+    if [ ! -d "/workspace/custom_nodes/$node" ]; then
+        echo "[SETUP] Copying $node from base image..."
+        cp -r "/app/custom_nodes_base/$node" "/workspace/custom_nodes/"
+    fi
+done
+
+# Symlink to ComfyUI
+rm -rf /app/ComfyUI/custom_nodes
+ln -sf /workspace/custom_nodes /app/ComfyUI/custom_nodes
+
+# --- 4. Install additional nodes in background ---
 FULL_MARKER="/workspace/.nodes_full_installed"
 
-if [ ! -f "$CORE_MARKER" ]; then
-    echo ""
-    echo "[SETUP] First run detected - installing CORE custom nodes..."
-    NODE_MODE=core /app/scripts/install-nodes.sh --core
-    touch "$CORE_MARKER"
-    echo "[SETUP] CORE custom nodes installed."
+if [ ! -f "$FULL_MARKER" ]; then
+    echo "[NODES] Installing additional custom nodes in background..."
+    (
+        NODE_MODE=full /app/scripts/install-nodes.sh --full && touch "$FULL_MARKER"
+    ) > /var/log/node_install_bg.log 2>&1 &
 else
-    echo "[SETUP] CORE custom nodes already installed (skipping)."
-    if [ ! -L "/app/ComfyUI/custom_nodes" ] || [ ! -d "/app/ComfyUI/custom_nodes" ]; then
-        rm -rf /app/ComfyUI/custom_nodes
-        ln -sf /workspace/custom_nodes /app/ComfyUI/custom_nodes
-    fi
+    echo "[NODES] Additional nodes already installed."
 fi
 
-# --- 4. Copy bundled assets ---
+# --- 5. Copy bundled assets ---
 cp -n /app/assets/styles.csv /app/ComfyUI/styles.csv 2>/dev/null || true
 
 if [ -d "/app/assets/loras" ]; then
@@ -53,7 +62,7 @@ if [ -d "/app/assets/loras" ]; then
     cp -rn /app/assets/loras/* "$MODELS_DIR/loras/" 2>/dev/null || true
 fi
 
-# --- 5. Configure ComfyUI-Manager ---
+# --- 6. Configure ComfyUI-Manager ---
 MANAGER_DIR="/app/ComfyUI/custom_nodes/ComfyUI-Manager"
 if [ -d "$MANAGER_DIR" ]; then
     mkdir -p "$MANAGER_DIR/user"
@@ -64,21 +73,11 @@ network_mode = public
 EOF
 fi
 
-# --- 6. Model downloads (on-demand via UI) ---
+# --- 7. Model downloads (on-demand via UI) ---
 # Models are now downloaded on-demand through the UI
 # Essential models (CLIP, VAE) can be pre-downloaded if needed
 echo ""
 echo "[MODELS] Models available for download via UI"
-
-# --- 7. Start FULL node install in background (once) ---
-if [ ! -f "$FULL_MARKER" ]; then
-    echo "[NODES] Starting full node install in background..."
-    (
-        NODE_MODE=full /app/scripts/install-nodes.sh --full && touch "$FULL_MARKER"
-    ) > /var/log/node_install_bg.log 2>&1 &
-else
-    echo "[NODES] Full node set already installed."
-fi
 
 # --- 8. Launch all services via supervisord ---
 echo ""
