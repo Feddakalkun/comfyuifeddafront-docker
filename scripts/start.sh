@@ -10,7 +10,6 @@ echo ""
 # --- 1. Create network volume directory structure ---
 MODELS_DIR="/workspace/models/comfyui"
 mkdir -p "$MODELS_DIR"/{checkpoints,diffusion_models,clip,text_encoders,vae,loras,sams,ultralytics/bbox,model_patches}
-mkdir -p /workspace/models/ollama
 mkdir -p /workspace/output
 mkdir -p /workspace/input
 
