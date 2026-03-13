@@ -38,11 +38,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
     && ln -sf /usr/bin/python3 /usr/bin/python
 
-# Install Ollama manually (install.sh doesn't work in Docker builds)
-RUN curl -fsSL https://ollama.com/download/ollama-linux-amd64.tgz -o /tmp/ollama.tgz \
-    && tar -xzf /tmp/ollama.tgz -C /usr \
-    && rm /tmp/ollama.tgz \
-    && chmod +x /usr/bin/ollama
+# Install Ollama (single binary)
+RUN curl -fsSL -o /usr/local/bin/ollama https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
+    && chmod +x /usr/local/bin/ollama
 
 # Upgrade pip
 RUN python3 -m pip install --no-cache-dir --upgrade pip wheel setuptools
