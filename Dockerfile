@@ -38,10 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
     && ln -sf /usr/bin/python3 /usr/bin/python
 
-# Install Ollama (single binary)
-RUN curl -fsSL -o /usr/local/bin/ollama https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64 \
-    && chmod +x /usr/local/bin/ollama
-
 # Upgrade pip
 RUN python3 -m pip install --no-cache-dir --upgrade pip wheel setuptools
 
@@ -108,7 +104,6 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 EXPOSE 3000
 EXPOSE 8199
 EXPOSE 8888
-EXPOSE 11434
 
 ENTRYPOINT ["/app/scripts/start.sh"]
 
