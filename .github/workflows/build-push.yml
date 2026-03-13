@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:  # Manual trigger button in GitHub UI
+  repository_dispatch:  # Triggered by main repo when code changes
+    types: [main_repo_updated]
 
 jobs:
   build:
