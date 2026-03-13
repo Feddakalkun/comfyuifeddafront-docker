@@ -99,9 +99,22 @@ download_if_missing \
     "$MODELS/loras/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors" \
     "Qwen Lightning LoRA (810 MB)"
 
-# ===== LLM MODELS via IF_AI_tools =====
+# ===== OLLAMA LLM MODELS =====
 echo ""
-echo "[MODEL] LLM models will be downloaded via IF_AI_tools on first use"
+echo "[OLLAMA] Waiting for Ollama to start..."
+for i in {1..30}; do
+    if curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+        echo "[OLLAMA] Service is up!"
+        break
+    fi
+    sleep 2
+done
+
+echo "[OLLAMA] Pulling qwen2.5:3b (1.9GB)..."
+ollama pull qwen2.5:3b 2>&1 | grep -v "^$" || true
+
+echo "[OLLAMA] Pulling llama3.2:3b (2.0GB)..."
+ollama pull llama3.2:3b 2>&1 | grep -v "^$" || true
 
 echo ""
 echo "========================================="
