@@ -77,6 +77,7 @@ RUN python3 -m pip install --no-cache-dir \
     deepdiff fal_client matplotlib scipy scikit-image scikit-learn \
     timm colour-science blend-modes loguru \
     fastapi "uvicorn[standard]" python-multipart \
+    jupyterlab \
     numpy pillow tqdm requests psutil
 
 # --- Copy app code from the cloned main repo (stage 1) ---
@@ -102,6 +103,7 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 
 EXPOSE 3000
 EXPOSE 8199
+EXPOSE 8888
 
 ENTRYPOINT ["/app/scripts/start.sh"]
 
