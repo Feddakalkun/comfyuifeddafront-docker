@@ -65,10 +65,11 @@ network_mode = public
 EOF
 fi
 
-# --- 6. Start model downloads in background ---
+# --- 6. Model downloads (on-demand via UI) ---
+# Models are now downloaded on-demand through the UI
+# Essential models (CLIP, VAE) can be pre-downloaded if needed
 echo ""
-echo "[MODELS] Starting background model downloads..."
-/app/scripts/download-models.sh &
+echo "[MODELS] Models available for download via UI"
 
 # --- 7. Start FULL node install in background (once) ---
 if [ ! -f "$FULL_MARKER" ]; then
