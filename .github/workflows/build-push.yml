@@ -3,8 +3,8 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Manual trigger button in GitHub UI
-  repository_dispatch:  # Triggered by main repo when code changes
+  workflow_dispatch:
+  repository_dispatch:
     types: [main_repo_updated]
 
 jobs:
@@ -31,5 +31,3 @@ jobs:
           tags: |
             feddahannah/fedda-studio:latest
             feddahannah/fedda-studio:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
