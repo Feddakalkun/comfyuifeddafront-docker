@@ -43,6 +43,8 @@ CORE_FOLDERS = {
     "ComfyUI-WanVideoWrapper",
     "ComfyUI-IF_AI_tools",
     "ComfyUI-Custom-Scripts",
+    "ComfyUI_essentials",
+    "was-node-suite-comfyui",
 }
 
 with open(config_path, encoding="utf-8") as f:

@@ -42,8 +42,18 @@ done
 rm -rf /app/ComfyUI/custom_nodes
 ln -sf /workspace/custom_nodes /app/ComfyUI/custom_nodes
 
-# --- 4. Install additional nodes in background ---
+# --- 4. Install core nodes synchronously, then remaining in background ---
+CORE_MARKER="/workspace/.nodes_core_installed"
 FULL_MARKER="/workspace/.nodes_full_installed"
+
+if [ ! -f "$CORE_MARKER" ]; then
+    echo "[NODES] Installing core custom nodes (required for startup)..."
+    NODE_MODE=core /app/scripts/install-nodes.sh --core
+    touch "$CORE_MARKER"
+    echo "[NODES] Core nodes installed."
+else
+    echo "[NODES] Core nodes already installed."
+fi
 
 if [ ! -f "$FULL_MARKER" ]; then
     echo "[NODES] Installing additional custom nodes in background..."
@@ -51,7 +61,7 @@ if [ ! -f "$FULL_MARKER" ]; then
         NODE_MODE=full /app/scripts/install-nodes.sh --full && touch "$FULL_MARKER"
     ) > /var/log/node_install_bg.log 2>&1 &
 else
-    echo "[NODES] Additional nodes already installed."
+    echo "[NODES] All nodes already installed."
 fi
 
 # --- 5. Copy bundled assets ---
